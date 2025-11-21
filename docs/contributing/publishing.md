@@ -59,19 +59,19 @@ All modules follow [Semantic Versioning](https://semver.org/):
 
 1. **Edit `gleam.toml`** in the module directory:
    ```toml
-   version = "0.1.1"
+   version = "1.0.1"
    ```
 
 2. **Update CHANGELOG.md** (if the module has one):
    ```markdown
-   ## 0.1.1 - 2025-11-20
+   ## 1.0.1 - 2025-11-20
    - Fixed bug in configuration loading
    ```
 
 3. **Commit and push**:
    ```bash
    git add modules/<module_name>/gleam.toml
-   git commit -m "chore(<module_name>): bump version to 0.1.1"
+   git commit -m "chore(<module_name>): bump version to 1.0.1"
    git push origin main
    ```
 
@@ -81,9 +81,9 @@ All modules follow [Semantic Versioning](https://semver.org/):
 
 Each module has its own version number. You can update one module without affecting others:
 
-- `dream_config` can be at `0.1.5`
-- `dream_http_client` can be at `0.2.0`
-- `dream_postgres` can be at `0.1.0`
+- `dream_config` can be at `1.0.5`
+- `dream_http_client` can be at `1.2.0`
+- `dream_postgres` can be at `1.0.0`
 
 This allows independent release cycles based on each module's needs.
 
@@ -160,10 +160,10 @@ Consider adding a `CHANGELOG.md` to each module:
 ```markdown
 # Changelog
 
-## 0.1.1 - 2025-11-20
+## 1.0.1 - 2025-11-20
 - Fixed bug in configuration loading
 
-## 0.1.0 - 2025-11-01
+## 1.0.0 - 2025-11-21
 - Initial release
 ```
 

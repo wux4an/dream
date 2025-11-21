@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-11-21
+
+### Added
+- Initial stable release to Hex.pm
+- All modules published as separate packages (dream_config, dream_http_client, dream_postgres, dream_opensearch, dream_json, dream_ets)
+
 ## [0.1.0] - 2025-11-19
 
 ### Added
@@ -60,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All code examples now include proper imports
 - Improved documentation tone and consistency
 
-[Unreleased]: https://github.com/TrustBound/dream/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/TrustBound/dream/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/TrustBound/dream/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/TrustBound/dream/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/TrustBound/dream/releases/tag/v0.0.1
 
