@@ -11,32 +11,38 @@ test:
 
 test-integration:
 	@echo "=== Running integration tests ==="
-	@echo "Killing any existing servers..."
-	@pkill -9 -f "gleam run.*main" 2>/dev/null || true
-	@pkill -9 -f "dream_example_database" 2>/dev/null || true
-	@lsof -ti:3002 | xargs kill -9 2>/dev/null || true
-	@sleep 2
-	@echo "Setting up database..."
-	@docker-compose down -v > /dev/null 2>&1 || true
-	@sleep 1
-	@docker-compose up -d postgres > /dev/null 2>&1 || true
-	@echo "Waiting for database to be ready..."
-	@for i in $$(seq 1 30); do \
-		if docker-compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then \
-			echo "Database is ready!"; \
-			break; \
-		fi; \
-		if [ $$i -eq 30 ]; then \
-			echo "Database failed to start"; \
-			docker-compose down; \
-			exit 1; \
-		fi; \
+	@if [ -z "$$CI" ]; then \
+		echo "Killing any existing servers..."; \
+		pkill -9 -f "gleam run.*main" 2>/dev/null || true; \
+		pkill -9 -f "dream_example_database" 2>/dev/null || true; \
+		lsof -ti:3002 | xargs kill -9 2>/dev/null || true; \
+		sleep 2; \
+		echo "Setting up database..."; \
+		docker-compose down -v > /dev/null 2>&1 || true; \
 		sleep 1; \
-	done; \
-	echo "Running migrations..."; \
-	docker-compose exec -T postgres psql -U postgres -c "DROP DATABASE IF EXISTS dream_example_database_db;" > /dev/null 2>&1; \
-	docker-compose exec -T postgres psql -U postgres -c "CREATE DATABASE dream_example_database_db;" > /dev/null 2>&1; \
-	export DATABASE_URL="$(DATABASE_URL)" && gleam run -m cigogne all || { echo "Migration failed"; docker-compose down; exit 1; }; \
+		docker-compose up -d postgres > /dev/null 2>&1 || true; \
+	else \
+		echo "Using CI PostgreSQL service..."; \
+	fi
+	@if [ -z "$$CI" ]; then \
+		echo "Waiting for database to be ready..."; \
+		for i in $$(seq 1 30); do \
+			if docker-compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then \
+				echo "Database is ready!"; \
+				break; \
+			fi; \
+			if [ $$i -eq 30 ]; then \
+				echo "Database failed to start"; \
+				docker-compose down; \
+				exit 1; \
+			fi; \
+			sleep 1; \
+		done; \
+		echo "Running migrations..."; \
+		docker-compose exec -T postgres psql -U postgres -c "DROP DATABASE IF EXISTS dream_example_database_db;" > /dev/null 2>&1; \
+		docker-compose exec -T postgres psql -U postgres -c "CREATE DATABASE dream_example_database_db;" > /dev/null 2>&1; \
+		export DATABASE_URL="$(DATABASE_URL)" && gleam run -m cigogne all || { echo "Migration failed"; docker-compose down; exit 1; }; \
+	fi
 	echo "Building Gleam application..."; \
 	make clean > /dev/null 2>&1 || true; \
 	gleam build > /dev/null 2>&1; \
@@ -54,7 +60,7 @@ test-integration:
 			echo "Server failed to start"; \
 			tail -20 /tmp/database_test.log; \
 			kill $$SERVER_PID 2>/dev/null || true; \
-			docker-compose down; \
+			if [ -z "$$CI" ]; then docker-compose down; fi; \
 			exit 1; \
 		fi; \
 		sleep 1; \
@@ -66,10 +72,12 @@ test-integration:
 	kill $$SERVER_PID 2>/dev/null || true; \
 	sleep 2; \
 	kill -9 $$SERVER_PID 2>/dev/null || true; \
-	pkill -9 -f "dream_example_database" 2>/dev/null || true; \
-	lsof -ti:3002 | xargs kill -9 2>/dev/null || true; \
-	sleep 1; \
-	docker-compose down > /dev/null 2>&1 || true; \
+	lsof -ti:3002 2>/dev/null | xargs -r kill -9 2>/dev/null || true; \
+	if [ -z "$$CI" ]; then \
+		pkill -9 -f "dream_example_database" 2>/dev/null || true; \
+		sleep 1; \
+		docker-compose down > /dev/null 2>&1 || true; \
+	fi; \
 	exit $$TEST_EXIT
 
 clean:

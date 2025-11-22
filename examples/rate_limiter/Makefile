@@ -8,11 +8,13 @@ test:
 
 test-integration:
 	@echo "=== Running integration tests ==="
-	@echo "Killing any existing servers..."
-	@pkill -9 -f "gleam run.*main" 2>/dev/null || true
-	@pkill -9 -f "dream_example_rate_limiter" 2>/dev/null || true
-	@lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-	@sleep 2
+	@if [ -z "$$CI" ]; then \
+		echo "Killing any existing servers..."; \
+		pkill -9 -f "gleam run.*main" 2>/dev/null || true; \
+		pkill -9 -f "dream_example_rate_limiter" 2>/dev/null || true; \
+		lsof -ti:3000 | xargs kill -9 2>/dev/null || true; \
+		sleep 2; \
+	fi
 	@echo "Building Gleam application..."
 	@make clean > /dev/null 2>&1 || true
 	@gleam build > /dev/null 2>&1
@@ -42,9 +44,11 @@ test-integration:
 	kill $$SERVER_PID 2>/dev/null || true; \
 	sleep 2; \
 	kill -9 $$SERVER_PID 2>/dev/null || true; \
-	pkill -9 -f "dream_example_rate_limiter" 2>/dev/null || true; \
-	lsof -ti:3000 | xargs kill -9 2>/dev/null || true; \
-	sleep 1; \
+	lsof -ti:3000 2>/dev/null | xargs -r kill -9 2>/dev/null || true; \
+	if [ -z "$$CI" ]; then \
+		pkill -9 -f "dream_example_rate_limiter" 2>/dev/null || true; \
+		sleep 1; \
+	fi; \
 	exit $$TEST_EXIT
 
 clean:
