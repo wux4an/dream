@@ -1,4 +1,4 @@
-import dream/context.{type AppContext}
+import dream/context.{type EmptyContext}
 import dream/http/request.{type Request, Request}
 import dream/http/response.{type Response, Response, Stream as ResponseStream}
 import gleam/bit_array
@@ -9,33 +9,33 @@ import services.{type Services}
 
 /// Middleware that converts all incoming stream chunks to uppercase
 pub fn uppercase_incoming(
-  req: Request,
-  ctx: AppContext,
-  svc: Services,
-  next: fn(Request, AppContext, Services) -> Response,
+  request: Request,
+  context: EmptyContext,
+  services: Services,
+  next: fn(Request, EmptyContext, Services) -> Response,
 ) -> Response {
-  case req.stream {
+  case request.stream {
     Some(stream) -> {
       let transformed_stream =
         stream
         |> yielder.map(uppercase_chunk)
 
-      let new_req = Request(..req, stream: Some(transformed_stream))
-      next(new_req, ctx, svc)
+      let new_request = Request(..request, stream: Some(transformed_stream))
+      next(new_request, context, services)
     }
     // If not a stream or empty, pass through unchanged
-    None -> next(req, ctx, svc)
+    None -> next(request, context, services)
   }
 }
 
 /// Middleware that replaces spaces with underscores in outgoing stream chunks
 pub fn replace_space_outgoing(
-  req: Request,
-  ctx: AppContext,
-  svc: Services,
-  next: fn(Request, AppContext, Services) -> Response,
+  request: Request,
+  context: EmptyContext,
+  services: Services,
+  next: fn(Request, EmptyContext, Services) -> Response,
 ) -> Response {
-  let response = next(req, ctx, svc)
+  let response = next(request, context, services)
 
   case response.body {
     ResponseStream(stream) -> {

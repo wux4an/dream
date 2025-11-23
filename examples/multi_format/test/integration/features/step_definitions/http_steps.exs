@@ -9,7 +9,7 @@ defmodule HttpSteps do
 
   step "the database is clean", context do
     # Connect to the test database (support both local docker and CI postgres)
-    port = String.to_integer(System.get_env("POSTGRES_PORT", "5436"))
+    port = String.to_integer(System.get_env("POSTGRES_PORT", "5435"))
 
     {:ok, pid} = Postgrex.start_link(
       username: "postgres",

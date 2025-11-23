@@ -12,6 +12,11 @@ test:
 test-integration:
 	@echo "=== Running integration tests ==="
 	@if [ -z "$$CI" ]; then \
+		echo "Checking Docker availability..."; \
+		if ! docker info > /dev/null 2>&1; then \
+			echo "ERROR: Docker is not running. Please start Docker Desktop and try again."; \
+			exit 1; \
+		fi; \
 		echo "Killing any existing servers..."; \
 		pkill -9 -f "gleam run.*main" 2>/dev/null || true; \
 		pkill -9 -f "dream_example_database" 2>/dev/null || true; \
@@ -32,7 +37,10 @@ test-integration:
 				break; \
 			fi; \
 			if [ $$i -eq 30 ]; then \
-				echo "Database failed to start"; \
+				echo "Database failed to start after 30 seconds"; \
+				echo "Checking Docker container status..."; \
+				docker-compose ps postgres || true; \
+				docker-compose logs --tail=20 postgres || true; \
 				docker-compose down; \
 				exit 1; \
 			fi; \

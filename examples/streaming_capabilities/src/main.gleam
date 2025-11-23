@@ -1,5 +1,4 @@
-import dream/context
-import dream/servers/mist/server.{bind, context, listen, router, services} as dream
+import dream/servers/mist/server.{bind, listen, router, services} as dream
 import gleam/io
 import router as app_router
 import services
@@ -14,7 +13,6 @@ pub fn main() {
   io.println("Starting streaming capabilities server on port 3000...")
 
   dream.new()
-  |> context(context.AppContext(request_id: ""))
   |> services(services_instance)
   |> router(router_instance)
   |> bind("localhost")

@@ -1,4 +1,4 @@
-import dream/context.{type AppContext}
+import dream/context.{type EmptyContext}
 import dream/http/request.{type Request}
 import dream/http/response.{type Response, stream_response, text_response}
 import dream/http/status
@@ -9,8 +9,12 @@ import gleam/yielder
 import services.{type Services}
 
 /// Ingress Streaming: Receives a stream and "saves" it (logs size)
-pub fn upload(req: Request, _ctx: AppContext, _svc: Services) -> Response {
-  case req.stream {
+pub fn upload(
+  request: Request,
+  _context: EmptyContext,
+  _services: Services,
+) -> Response {
+  case request.stream {
     Some(stream) -> {
       // Consume the stream "saving" it
       let total_bytes =
@@ -31,7 +35,11 @@ pub fn upload(req: Request, _ctx: AppContext, _svc: Services) -> Response {
 }
 
 /// Egress Streaming: Generates data on the fly and streams it out
-pub fn download(_req: Request, _ctx: AppContext, _svc: Services) -> Response {
+pub fn download(
+  _request: Request,
+  _context: EmptyContext,
+  _services: Services,
+) -> Response {
   // Generate a stream of numbers
   let stream =
     yielder.range(1, 1000)
@@ -46,11 +54,11 @@ pub fn download(_req: Request, _ctx: AppContext, _svc: Services) -> Response {
 /// Bi-Directional Echo: Simply echoes the request stream back
 /// Middleware will transform it on the way in AND out
 pub fn echo_transform(
-  req: Request,
-  _ctx: AppContext,
-  _svc: Services,
+  request: Request,
+  _context: EmptyContext,
+  _services: Services,
 ) -> Response {
-  case req.stream {
+  case request.stream {
     Some(stream) -> {
       // Just echo the stream back!
       // The middleware does the heavy lifting (uppercase -> replace space)
@@ -62,7 +70,11 @@ pub fn echo_transform(
 
 /// Proxy Streaming: Streams from external API
 /// (Using httpbin.org as example)
-pub fn proxy(_req: Request, _ctx: AppContext, _svc: Services) -> Response {
+pub fn proxy(
+  _request: Request,
+  _context: EmptyContext,
+  _services: Services,
+) -> Response {
   // For this example, we'll simulate a proxy response
   // In a real app, you'd use dream_http_client/stream here
 

@@ -44,7 +44,7 @@ import gleam/yielder.{type Yielder}
 /// import dream/http/request.{Get, Post, Put, Delete}
 /// import dream/router.{route, router}
 ///
-/// router
+/// router()
 /// |> route(method: Get, path: "/users", controller: list_users, middleware: [])
 /// |> route(method: Post, path: "/users", controller: create_user, middleware: [])
 /// |> route(method: Put, path: "/users/:id", controller: update_user, middleware: [])

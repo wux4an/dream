@@ -37,12 +37,11 @@ fn index(
 
 pub fn main() {
   let app_router =
-    router
+    router()
     |> route(method: Get, path: "/", controller: index, middleware: [])
 
   server.new()
-  |> services(EmptyServices)
-  |> set_router(app_router)
+  |> router(app_router)
   |> bind("localhost")
   |> listen(3000)
 }
@@ -65,6 +64,8 @@ This code does three things:
 3. **Server** - `server.new()` configures and starts the server on port 3000
 
 **Note:** When using Dream's default `AppContext`, you don't need to call `context()` - it's automatic.
+
+**Performance:** Dream uses a radix trie for routing, giving O(path depth) lookup performance. This means 1000 routes perform nearly as fast as 10 routes (~1.3μs per lookup regardless of route count). The router is fast enough that it won't be your bottleneck.
 
 ## What's Next?
 

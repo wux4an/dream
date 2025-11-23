@@ -2,7 +2,7 @@ import dream/context
 import dream/dream
 import dream/http/request.{type Method, type Request, Http, Http1, Post, Request}
 import dream/http/response.{type Response, Response, Text}
-import dream/router.{type EmptyServices, EmptyServices, router}
+import dream/router.{type EmptyServices, EmptyServices}
 import gleam/bit_array
 import gleam/option
 import gleam/yielder
@@ -13,7 +13,7 @@ import gleeunit/should
 
 // Test router helpers
 fn create_test_router() -> router.Router(context.AppContext, EmptyServices) {
-  router
+  router.router()
   |> router.route(
     method: Post,
     path: "/buffer",
