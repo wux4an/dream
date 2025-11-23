@@ -33,3 +33,6 @@ mix.lock.backup
 # Node modules (for examples with frontend)
 node_modules/
 
+# Temporary POC files
+tmp/
+
