@@ -97,9 +97,9 @@ pub type ValidationError {
 /// ## Example
 ///
 /// ```gleam
-/// import dream/http/validation
-/// import dream/http/response
-/// import dream/http/status
+/// import dream/http/response.{json_response}
+/// import dream/http/status.{bad_request, created}
+/// import dream/http/validation.{validate_json}
 /// import gleam/dynamic/decode
 /// import gleam/json
 ///
@@ -115,11 +115,11 @@ pub type ValidationError {
 /// }
 ///
 /// pub fn create_post(request, context, services) {
-///   case validation.validate_json(request.body, post_decoder) {
+///   case validate_json(request.body, post_decoder) {
 ///     Ok(post) -> {
 ///       // Valid post data - proceed with business logic
 ///       let created = insert_post(services.db, post)
-///       response.json_response(status.created, post_to_json(created))
+///       json_response(created, post_to_json(created))
 ///     }
 ///     
 ///     Error(err) -> {
@@ -128,7 +128,7 @@ pub type ValidationError {
 ///         #("error", json.string(err.message)),
 ///         #("field", field_json)
 ///       ])
-///       response.json_response(status.bad_request, json.to_string(error_json))
+///       json_response(bad_request, json.to_string(error_json))
 ///     }
 ///   }
 /// }

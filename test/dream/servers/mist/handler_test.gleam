@@ -9,7 +9,7 @@ import gleeunit/should
 
 pub fn create_with_valid_config_returns_handler_function_test() {
   // Arrange
-  let test_router = router.router
+  let test_router = router.router()
   let max_body_size = 1024
   let template_context = context.AppContext(request_id: "")
   let services_instance = router.EmptyServices

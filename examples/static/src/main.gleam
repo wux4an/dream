@@ -1,13 +1,6 @@
-import dream/context.{AppContext}
-import dream/router
-import dream/servers/mist/server.{
-  bind, context, listen, router as set_router, services,
-} as dream
+import dream/servers/mist/server.{bind, listen, router} as dream
 import gleam/io
-import gleam/list
-import gleam/string
 import router as app_router
-import services.{initialize_services}
 import simplifile
 
 pub fn main() {
@@ -31,28 +24,10 @@ pub fn main() {
 
   let router_instance = app_router.create_router()
 
-  // Debug: Print registered routes
-  case router_instance {
-    router.Router(routes) -> {
-      io.println(
-        "=== REGISTERED "
-        <> string.inspect(list.length(routes))
-        <> " ROUTES ===",
-      )
-      list.each(routes, print_route_info)
-    }
-  }
-
   io.println("=== STARTING SERVER ON PORT 3000 ===")
 
   dream.new()
-  |> context(AppContext(request_id: ""))
-  |> services(initialize_services())
-  |> set_router(router_instance)
+  |> router(router_instance)
   |> bind("localhost")
   |> listen(3000)
-}
-
-fn print_route_info(route: router.Route(_, _)) {
-  io.println("  " <> string.inspect(route.method) <> " " <> route.path)
 }

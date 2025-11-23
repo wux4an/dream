@@ -1,12 +1,12 @@
 import controllers/stream_controller
-import dream/context.{type AppContext}
+import dream/context.{type EmptyContext}
 import dream/http/request.{Get, Post}
 import dream/router.{type Router, router, stream_route}
 import middleware/transform_middleware
 import services.{type Services}
 
-pub fn create() -> Router(AppContext, Services) {
-  router
+pub fn create() -> Router(EmptyContext, Services) {
+  router()
   // 1. Ingress Streaming (Uploads)
   // POST /upload - Streams data directly to "disk" (simulated)
   |> stream_route(

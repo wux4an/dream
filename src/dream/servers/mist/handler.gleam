@@ -54,13 +54,31 @@ pub fn create(
   update_context: fn(context, String) -> context,
 ) -> fn(http_request.Request(Connection)) ->
   http_response.Response(ResponseData) {
+  create_request_handler(
+    router,
+    max_body_size,
+    template_context,
+    services_instance,
+    update_context,
+  )
+}
+
+/// Create the request handler function that processes Mist requests
+fn create_request_handler(
+  router: Router(context, services),
+  max_body_size: Int,
+  template_context: context,
+  services_instance: services,
+  update_context: fn(context, String) -> context,
+) -> fn(http_request.Request(Connection)) ->
+  http_response.Response(ResponseData) {
   fn(mist_req: http_request.Request(Connection)) {
     // 1. Create a "Lightweight" Request (Headers, Path, Method only)
     let #(partial_req, request_id) = mist_request.convert_metadata(mist_req)
 
     // 2. Find the route using the lightweight request
     case find_route(router, partial_req) {
-      option.Some(#(route, _params)) -> {
+      option.Some(#(route, params)) -> {
         // Create context for this request by updating template with request_id
         let request_context = update_context(template_context, request_id)
 
@@ -69,10 +87,10 @@ pub fn create(
           mist_req,
           partial_req,
           route,
+          params,
           max_body_size,
           request_context,
           services_instance,
-          router,
         )
       }
 
@@ -96,10 +114,10 @@ fn handle_routed_request(
   mist_req: http_request.Request(Connection),
   partial_req: Request,
   route: Route(context, services),
+  params: List(#(String, String)),
   max_body_size: Int,
   request_context: context,
   services_instance: services,
-  router: Router(context, services),
 ) -> http_response.Response(ResponseData) {
   // 3. DECIDE: Stream or Buffer?
   let final_req_result = case route.streaming {
@@ -109,11 +127,13 @@ fn handle_routed_request(
 
   case final_req_result {
     Ok(final_req) -> {
-      // 4. Route the request with context and services
+      // 4. Execute the route directly (we already found it above)
+      // execute_route will set params on the request internally
       let dream_response =
-        dream.route_request(
-          router,
+        dream.execute_route(
+          route,
           final_req,
+          params,
           request_context,
           services_instance,
         )

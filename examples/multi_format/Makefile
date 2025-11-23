@@ -1,5 +1,5 @@
 # Docker Compose database connection URL
-DATABASE_URL = postgres://postgres:postgres@localhost:5436/dream_example_multi_format_db
+DATABASE_URL = postgres://postgres:postgres@localhost:5435/dream_example_multi_format_db
 
 .PHONY: run test test-integration clean db-up db-down db-logs db-shell db-reset squirrel migrate migrate-up migrate-down migrate-new
 
@@ -12,13 +12,19 @@ test:
 test-integration:
 	@echo "=== Running integration tests ==="
 	@if [ -z "$$CI" ]; then \
+		echo "Checking Docker availability..."; \
+		if ! docker info > /dev/null 2>&1; then \
+			echo "ERROR: Docker is not running. Please start Docker Desktop and try again."; \
+			exit 1; \
+		fi; \
 		echo "Killing any existing servers..."; \
 		pkill -9 -f "gleam run.*main" 2>/dev/null || true; \
 		pkill -9 -f "dream_example_multi_format" 2>/dev/null || true; \
 		lsof -ti:3000 | xargs kill -9 2>/dev/null || true; \
 		sleep 2; \
 		echo "Setting up database..."; \
-		docker-compose down > /dev/null 2>&1 || true; \
+		docker-compose down -v > /dev/null 2>&1 || true; \
+		sleep 1; \
 		docker-compose up -d postgres > /dev/null 2>&1 || true; \
 		echo "Waiting for database to be ready..."; \
 		for i in $$(seq 1 30); do \
@@ -27,7 +33,10 @@ test-integration:
 				break; \
 			fi; \
 			if [ $$i -eq 30 ]; then \
-				echo "Database failed to start"; \
+				echo "Database failed to start after 30 seconds"; \
+				echo "Checking Docker container status..."; \
+				docker-compose ps postgres || true; \
+				docker-compose logs --tail=20 postgres || true; \
 				docker-compose down; \
 				exit 1; \
 			fi; \

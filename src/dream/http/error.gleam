@@ -36,20 +36,20 @@
 //// Use `to_status_code()` and `message()` to convert errors to HTTP responses:
 ////
 //// ```gleam
-//// import dream/http/error
-//// import dream/http/response
+//// import dream/http/error.{type Error, message, to_status_code}
+//// import dream/http/response.{type Response, json_response}
 //// import gleam/json
 ////
 //// let result = get_user(db, id)
 //// 
 //// case result {
-////   Ok(user) -> response.json_response(200, user_to_json(user))
+////   Ok(user) -> json_response(200, user_to_json(user))
 ////   Error(err) -> create_error_response(err)
 //// }
 //// 
 //// fn create_error_response(err: Error) -> Response {
-////   let error_json = json.object([#("error", json.string(error.message(err)))])
-////   response.json_response(error.to_status_code(err), error_json)
+////   let error_json = json.object([#("error", json.string(message(err)))])
+////   json_response(to_status_code(err), error_json)
 //// }
 //// ```
 
