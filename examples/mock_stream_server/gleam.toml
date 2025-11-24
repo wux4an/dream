@@ -1,0 +1,16 @@
+name = "dream_example_mock_stream_server"
+version = "0.1.0"
+description = "Mock stream server for testing and demonstrating Dream's streaming capabilities"
+licences = ["MIT"]
+
+[dependencies]
+dream = { path = "../.." }
+gleam_erlang = ">= 1.0.0 and < 2.0.0"
+gleam_http = ">= 4.0.0 and < 5.0.0"
+gleam_json = ">= 2.2.0 and < 4.0.0"
+gleam_otp = ">= 1.0.0 and < 2.0.0"
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+gleam_yielder = ">= 1.1.0 and < 2.0.0"
+mist = ">= 5.0.3 and < 6.0.0"
+
+
