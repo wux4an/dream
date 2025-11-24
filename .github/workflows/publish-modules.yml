@@ -63,7 +63,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if Dream version changed
+      - name: Check if Dream version exists on Hex
         id: version_check
         env:
           FORCE_PUBLISH: ${{ secrets.FORCE_PUBLISH }}
@@ -75,27 +75,20 @@ jobs:
             echo "should_publish=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Get current version
           CURRENT_VERSION=$(grep '^version = ' gleam.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "Current Dream version: $CURRENT_VERSION"
 
-          # Get previous version from the commit on main before this push
-          if [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if git show ${{ github.event.before }}:gleam.toml > /dev/null 2>&1; then
-              PREVIOUS_VERSION=$(git show ${{ github.event.before }}:gleam.toml | grep '^version = ' | sed 's/version = "\(.*\)"/\1/')
-            else
-              PREVIOUS_VERSION=""
-            fi
-          else
-            PREVIOUS_VERSION=""
-          fi
+          # Check if this version already exists on Hex
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://hex.pm/api/packages/dream/releases/$CURRENT_VERSION")
 
-          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
-            echo "Dream version changed from '$PREVIOUS_VERSION' to '$CURRENT_VERSION'"
-            echo "should_publish=true" >> $GITHUB_OUTPUT
-          else
-            echo "Dream version unchanged ($CURRENT_VERSION), skipping publish"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "Version $CURRENT_VERSION already published to Hex, skipping publish"
             echo "should_publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $CURRENT_VERSION not found on Hex (HTTP $HTTP_STATUS), will publish"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Install Erlang and Gleam
@@ -136,17 +129,17 @@ jobs:
           # Extract version from gleam.toml
           VERSION=$(grep '^version = ' gleam.toml | sed 's/version = "\(.*\)"/\1/')
           TAG="v${VERSION}"
-          
+
           # Check if tag already exists
           if git rev-parse "${TAG}" >/dev/null 2>&1; then
             echo "Tag ${TAG} already exists, skipping tag creation"
             exit 0
           fi
-          
+
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Create and push tag
           echo "Creating git tag: ${TAG}"
           git tag -a "${TAG}" -m "Release Dream ${VERSION}"
