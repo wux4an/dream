@@ -33,7 +33,7 @@ Fixes #(issue number)
 
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
-- [ ] All tests pass (`make test && make test-examples`)
+- [ ] All tests pass (`make test`)
 - [ ] Code formatted with `gleam format`
 - [ ] No compiler warnings
 
