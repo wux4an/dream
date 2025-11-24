@@ -1,16 +1,19 @@
-# Mock Stream Server
+# Dream Mock Server
 
-A controllable streaming HTTP server that demonstrates Dream's streaming response capabilities and serves as a test fixture for Dream's HTTP client.
+A general-purpose HTTP mock server developed by Dream that provides both streaming and non-streaming endpoints for testing HTTP clients.
 
 ## Overview
 
-This example provides 8 different streaming endpoints with various behaviors, making it ideal for:
+This module provides a comprehensive set of endpoints for testing HTTP clients:
+
+- **Non-streaming endpoints** - Standard REST-like endpoints (GET, POST, PUT, DELETE)
+- **Streaming endpoints** - Various streaming behaviors for testing chunked responses
+
+All endpoints are deterministic and designed for testing, making them ideal for:
 
 - **Testing** - Use as a test fixture for HTTP client integration tests
-- **Demo** - Showcase Dream's streaming capabilities with predictable behavior
-- **Learning** - Study different streaming patterns and error handling
-
-All endpoints use Dream's `response.stream_response()` to demonstrate chunked transfer encoding with `yielder` for memory-efficient streaming.
+- **Demo** - Showcase Dream's HTTP capabilities with predictable behavior
+- **Learning** - Study different HTTP patterns and error handling
 
 ## Running
 
@@ -29,7 +32,7 @@ Then access endpoints at `http://localhost:3004/`
 Use in tests or other applications:
 
 ```gleam
-import mock_stream_server/server
+import dream_mock_server/server
 
 pub fn my_test() {
   let assert Ok(handle) = server.start(3004)
@@ -41,13 +44,85 @@ pub fn my_test() {
 }
 ```
 
-## Endpoints
+## Non-Streaming Endpoints
+
+### `GET /get`
+
+**Returns JSON with request info**
+
+- Returns: `{"method": "GET", "url": "/get", "headers": []}`
+- Status: 200 OK
+- Content-Type: `application/json`
+
+**Use for:** Testing GET requests, JSON parsing
+
+### `POST /post`
+
+**Echoes request body as JSON**
+
+- Returns: `{"method": "POST", "url": "/post", "data": "<request body>"}`
+- Status: 201 Created
+- Content-Type: `application/json`
+
+**Use for:** Testing POST requests, request body handling
+
+### `PUT /put`
+
+**Echoes request body as JSON**
+
+- Returns: `{"method": "PUT", "url": "/put", "data": "<request body>"}`
+- Status: 200 OK
+- Content-Type: `application/json`
+
+**Use for:** Testing PUT requests
+
+### `DELETE /delete`
+
+**Returns success response**
+
+- Returns: `{"method": "DELETE", "url": "/delete"}`
+- Status: 200 OK
+- Content-Type: `application/json`
+
+**Use for:** Testing DELETE requests
+
+### `GET /json`
+
+**Returns simple JSON object**
+
+- Returns: `{"message": "Hello, World!", "success": true}`
+- Status: 200 OK
+- Content-Type: `application/json`
+
+**Use for:** Testing JSON parsing, simple responses
+
+### `GET /text`
+
+**Returns plain text**
+
+- Returns: `"Hello, World!"`
+- Status: 200 OK
+- Content-Type: `text/plain`
+
+**Use for:** Testing text responses
+
+### `GET /uuid`
+
+**Returns UUID-like string**
+
+- Returns: `{"uuid": "123e4567-e89b-12d3-a456-426614174000"}`
+- Status: 200 OK
+- Content-Type: `application/json`
+
+**Use for:** Testing small JSON responses
 
 ### `GET /`
 
 **Info page** - Lists all available endpoints with descriptions
 
 **Use for:** Documentation, service discovery
+
+## Streaming Endpoints
 
 ### `GET /stream/fast`
 
@@ -149,7 +224,7 @@ make run
 Start/stop programmatically for tests:
 
 ```gleam
-import mock_stream_server/server
+import dream_mock_server/server
 
 // Start server
 let assert Ok(handle) = server.start(3004)
@@ -166,7 +241,7 @@ Used by Dream's HTTP client tests:
 
 ```gleam
 // In modules/http_client/test/integration_test.gleam
-import mock_stream_server/server
+import dream_mock_server/server
 
 pub fn concurrent_streams_test() {
   let assert Ok(mock) = server.start(3004)
@@ -182,7 +257,7 @@ pub fn concurrent_streams_test() {
 
 ### Streaming Technique
 
-All endpoints use Dream's `response.stream_response()`:
+Streaming endpoints use Dream's `response.stream_response()`:
 
 ```gleam
 import dream/http/response.{stream_response}
@@ -203,9 +278,30 @@ pub fn stream_fast(...) -> Response {
 }
 ```
 
+### Non-Streaming Technique
+
+Non-streaming endpoints use standard `json_response()` and `text_response()`:
+
+```gleam
+import dream/http/response.{json_response}
+import dream/http/status
+import gleam/json
+
+pub fn get(...) -> Response {
+  let body =
+    json.object([
+      #("method", json.string("GET")),
+      #("url", json.string(request.path)),
+    ])
+    |> json.to_string
+  
+  json_response(status.ok, body)
+}
+```
+
 ### Timing Control
 
-Uses `process.sleep()` between chunks for deterministic timing:
+Streaming endpoints use `process.sleep()` between chunks for deterministic timing:
 
 - **Fast**: 100ms delays
 - **Slow**: 2000ms delays
@@ -220,13 +316,15 @@ The `/stream/error` endpoint demonstrates mid-stream errors by returning a 500 s
 
 ```
 src/
-├── main.gleam              # Standalone entry point (port 3004)
-├── server.gleam            # Programmatic start/stop functions
-├── router.gleam            # Route definitions
-├── controllers/
-│   └── stream_controller.gleam  # All 8 streaming endpoints
-└── views/
-    └── index_view.gleam         # Info page HTML
+├── main.gleam                    # Standalone entry point (port 3004)
+├── dream_mock_server/
+│   ├── server.gleam             # Programmatic start/stop functions
+│   ├── router.gleam             # Route definitions
+│   ├── controllers/
+│   │   ├── api_controller.gleam      # Non-streaming endpoints
+│   │   └── stream_controller.gleam   # Streaming endpoints
+│   └── views/
+│       └── index_view.gleam          # Info page HTML
 ```
 
 ## Dependencies
@@ -241,4 +339,3 @@ src/
 - [Dream Streaming Guide](../../docs/guides/streaming.md)
 - [HTTP Client Module](../../modules/http_client/)
 - [Streaming Capabilities Example](../streaming_capabilities/)
-

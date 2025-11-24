@@ -1,17 +1,32 @@
 .PHONY: run test test-integration clean
 
 run:
-	@gleam run -m main
+	@gleam run -m standalone
 
 test:
+	@if [ -z "$$CI" ]; then \
+		pkill -9 -f "dream_mock_server" 2>/dev/null || true; \
+		lsof -ti:19876 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19877 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19878 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19880 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19881 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19882 | xargs kill -9 2>/dev/null || true; \
+		lsof -ti:19883 | xargs kill -9 2>/dev/null || true; \
+		sleep 2; \
+	fi
 	@gleam test
+	@if [ -z "$$CI" ]; then \
+		pkill -9 -f "dream_mock_server" 2>/dev/null || true; \
+		sleep 1; \
+	fi
 
 test-integration:
 	@echo "=== Running integration tests ==="
 	@if [ -z "$$CI" ]; then \
 		echo "Killing any existing servers..."; \
 		pkill -9 -f "gleam run.*main" 2>/dev/null || true; \
-		pkill -9 -f "dream_example_mock_stream_server" 2>/dev/null || true; \
+		pkill -9 -f "dream_mock_server" 2>/dev/null || true; \
 		lsof -ti:3004 | xargs kill -9 2>/dev/null || true; \
 		sleep 2; \
 	fi
@@ -19,7 +34,7 @@ test-integration:
 	@make clean > /dev/null 2>&1 || true
 	@gleam build > /dev/null 2>&1
 	@echo "Starting server in background..."
-	@gleam run -m main > /tmp/mock_stream_server_test.log 2>&1 & \
+	@gleam run -m standalone > /tmp/mock_server_test.log 2>&1 & \
 	SERVER_PID=$$!; \
 	echo "Server PID: $$SERVER_PID"; \
 	echo "Waiting for server to be ready..."; \
@@ -30,7 +45,7 @@ test-integration:
 		fi; \
 		if [ $$i -eq 30 ]; then \
 			echo "Server failed to start"; \
-			tail -20 /tmp/mock_stream_server_test.log; \
+			tail -20 /tmp/mock_server_test.log; \
 			kill $$SERVER_PID 2>/dev/null || true; \
 			exit 1; \
 		fi; \
@@ -45,7 +60,7 @@ test-integration:
 	kill -9 $$SERVER_PID 2>/dev/null || true; \
 	lsof -ti:3004 2>/dev/null | xargs -r kill -9 2>/dev/null || true; \
 	if [ -z "$$CI" ]; then \
-		pkill -9 -f "dream_example_mock_stream_server" 2>/dev/null || true; \
+		pkill -9 -f "dream_mock_server" 2>/dev/null || true; \
 		sleep 1; \
 	fi; \
 	exit $$TEST_EXIT

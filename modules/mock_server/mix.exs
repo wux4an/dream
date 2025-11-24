@@ -1,9 +1,9 @@
-defmodule MockStreamServer.MixProject do
+defmodule DreamMockServer.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :mock_stream_server,
+      app: :dream_mock_server,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -28,4 +28,3 @@ defmodule MockStreamServer.MixProject do
     ]
   end
 end
-

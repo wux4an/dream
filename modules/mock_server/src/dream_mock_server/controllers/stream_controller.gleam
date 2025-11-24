@@ -8,15 +8,15 @@ import dream/http/request.{type Request}
 import dream/http/response.{type Response, stream_response, text_response}
 import dream/http/status
 import dream/router.{type EmptyServices}
+import dream_mock_server/views/index_view
 import gleam/bit_array
 import gleam/erlang/process
 import gleam/int
 import gleam/json
 import gleam/list
 import gleam/yielder
-import views/index_view
 
-/// Index action - displays available streaming endpoints
+/// Index action - displays available endpoints (streaming and non-streaming)
 pub fn index(
   _request: Request,
   _context: EmptyContext,

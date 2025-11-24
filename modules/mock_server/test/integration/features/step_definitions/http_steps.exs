@@ -99,6 +99,26 @@ defmodule HttpSteps do
     end
   end
 
+  step "the response body should be empty", %{} = context do
+    actual_body = context.response.body
+
+    if byte_size(actual_body) == 0 do
+      context
+    else
+      raise "Response body is not empty, has #{byte_size(actual_body)} bytes"
+    end
+  end
+
+  step "the response should not contain {string}", %{args: [unexpected_content]} = context do
+    actual_body = context.response.body
+
+    case String.contains?(actual_body, unexpected_content) do
+      false -> context
+      true ->
+        raise "Response body should not contain '#{unexpected_content}', but it does. Body: #{String.slice(actual_body, 0, 200)}..."
+    end
+  end
+
   step "the response should have exactly {int} lines", %{args: [expected_lines]} = context do
     actual_body = context.response.body
     lines = String.split(actual_body, "\n") |> Enum.filter(&(&1 != ""))

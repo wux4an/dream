@@ -12,6 +12,7 @@ test-integration:
 	@pkill -9 -f "gleam run.*main" 2>/dev/null || true
 	@pkill -9 -f "streaming_capabilities" 2>/dev/null || true
 	@lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+	@lsof -ti:9876 | xargs kill -9 2>/dev/null || true
 	@sleep 2
 	@echo "Building Gleam application..."
 	@make clean > /dev/null 2>&1 || true
@@ -43,6 +44,7 @@ test-integration:
 	kill -9 $$SERVER_PID 2>/dev/null || true; \
 	pkill -9 -f "streaming_capabilities" 2>/dev/null || true; \
 	lsof -ti:3000 | xargs kill -9 2>/dev/null || true; \
+	lsof -ti:9876 | xargs kill -9 2>/dev/null || true; \
 	sleep 1; \
 	exit $$TEST_EXIT
 
