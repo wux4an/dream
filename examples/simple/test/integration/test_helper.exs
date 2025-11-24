@@ -20,3 +20,4 @@ ExUnit.start(
 
 # Compile features after everything is loaded
 Cucumber.compile_features!()
+
