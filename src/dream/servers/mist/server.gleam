@@ -141,7 +141,7 @@ pub fn context(
   new_context: context,
 ) -> dream.Dream(mist.Builder(Connection, ResponseData), context, old_services) {
   dream.create(
-    server: dream.get_server(dream_instance),
+    server: dream.get_server(dream_instance, risks_understood: True),
     router: option.None,
     context: new_context,
     services: dream.get_services(dream_instance),
@@ -185,7 +185,7 @@ pub fn services(
   services_instance: services,
 ) -> dream.Dream(mist.Builder(Connection, ResponseData), old_context, services) {
   dream.create(
-    server: dream.get_server(dream_instance),
+    server: dream.get_server(dream_instance, risks_understood: True),
     router: option.None,
     context: dream.get_context(dream_instance),
     services: option.Some(services_instance),
@@ -225,7 +225,7 @@ pub fn router(
   router_instance: Router(context, services),
 ) -> dream.Dream(mist.Builder(Connection, ResponseData), context, services) {
   dream.create(
-    server: dream.get_server(dream_instance),
+    server: dream.get_server(dream_instance, risks_understood: True),
     router: option.Some(router_instance),
     context: dream.get_context(dream_instance),
     services: dream.get_services(dream_instance),
@@ -261,7 +261,10 @@ pub fn bind(
   interface: String,
 ) -> dream.Dream(mist.Builder(Connection, ResponseData), context, services) {
   dream.create(
-    server: mist.bind(dream.get_server(dream_instance), interface),
+    server: mist.bind(
+      dream.get_server(dream_instance, risks_understood: True),
+      interface,
+    ),
     router: dream.get_router(dream_instance),
     context: dream.get_context(dream_instance),
     services: dream.get_services(dream_instance),
@@ -298,7 +301,7 @@ pub fn max_body_size(
   size: Int,
 ) -> dream.Dream(mist.Builder(Connection, ResponseData), context, services) {
   dream.create(
-    server: dream.get_server(dream_instance),
+    server: dream.get_server(dream_instance, risks_understood: True),
     router: dream.get_router(dream_instance),
     context: dream.get_context(dream_instance),
     services: dream.get_services(dream_instance),

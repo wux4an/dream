@@ -133,6 +133,12 @@ pub fn create(
 /// Using this in your application code creates tight coupling to Mist and prevents
 /// Dream from switching server implementations in the future.
 ///
+/// ## The `risks_understood` Parameter
+///
+/// You **must** explicitly pass `risks_understood: True` to call this function.
+/// Passing `False` will panic. This forces you to consciously acknowledge that
+/// you're breaking Dream's abstraction.
+///
 /// ## When You Might Need This
 ///
 /// You might legitimately need this if:
@@ -140,8 +146,9 @@ pub fn create(
 /// - You're integrating with libraries that expect raw Mist types
 /// - You're debugging server-level issues
 ///
-/// ## Risks
+/// ## Risks You're Accepting
 ///
+/// By passing `risks_understood: True`, you acknowledge:
 /// - **Vendor lock-in**: Your code becomes coupled to Mist
 /// - **Breaking changes**: If Dream switches servers or upgrades Mist, your code breaks
 /// - **Lost abstractions**: You bypass Dream's carefully designed API
@@ -153,9 +160,28 @@ pub fn create(
 /// - `server.max_body_size()` for request size limits
 /// - Or open a GitHub issue requesting the feature you need
 ///
+/// ## Example
+///
+/// ```gleam
+/// // You must explicitly acknowledge the risks
+/// let mist_server = dream.get_server(app, risks_understood: True)
+/// // Now you have raw Mist types - your code is coupled to Mist
+/// ```
+///
 /// If you must use this, isolate it in a single module and document why.
-pub fn get_server(dream: Dream(server, context, services)) -> server {
-  dream.server
+///
+/// ## Panics
+///
+/// Panics if `risks_understood` is `False`. You must pass `True` to proceed.
+pub fn get_server(
+  dream: Dream(server, context, services),
+  risks_understood risks: Bool,
+) -> server {
+  case risks {
+    True -> dream.server
+    False ->
+      panic as "dream.get_server() requires risks_understood: True. This function breaks Dream's server abstraction and couples your code to Mist. Read the documentation to understand the risks before proceeding."
+  }
 }
 
 /// Get the router configured for this Dream instance
