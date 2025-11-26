@@ -1,0 +1,106 @@
+name: Publish Documentation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish docs for (leave empty to use gleam.toml version)'
+        required: false
+        type: string
+
+jobs:
+  publish-docs:
+    name: Publish Documentation to Hex
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow creating git tags
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=$(grep '^version = ' gleam.toml | sed 's/version = "\(.*\)"/\1/')
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing docs for version: $VERSION"
+
+      - name: Create git tag if needed
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v${VERSION}"
+          
+          # Check if tag already exists
+          if git rev-parse "${TAG}" >/dev/null 2>&1; then
+            echo "✓ Tag ${TAG} already exists"
+          else
+            echo "Creating git tag: ${TAG}"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "Release Dream ${VERSION}"
+            git push origin "${TAG}"
+            echo "✓ Successfully created and pushed tag: ${TAG}"
+          fi
+
+      - name: Verify package exists on Hex
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Checking if dream@${VERSION} exists on Hex..."
+          
+          HTTP_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 10 \
+            --retry 3 \
+            --retry-delay 2 \
+            "https://hex.pm/api/packages/dream/releases/${VERSION}")
+          
+          if [ "$HTTP_RESPONSE" = "200" ]; then
+            echo "✓ Package dream@${VERSION} exists on Hex"
+          else
+            echo "✗ Error: Package dream@${VERSION} not found on Hex (HTTP ${HTTP_RESPONSE})"
+            echo "Please publish the package first before publishing docs"
+            exit 1
+          fi
+
+      - name: Install Erlang and Gleam
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "28"
+          gleam-version: "1.13.0"
+          rebar3-version: "3"
+
+      - name: Download dependencies
+        run: gleam deps download
+
+      - name: Build documentation
+        run: gleam docs build
+
+      - name: Publish documentation to Hex
+        env:
+          HEXPM_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          if [ -z "$HEXPM_API_KEY" ]; then
+            echo "Error: HEX_API_KEY secret is not set"
+            exit 1
+          fi
+          
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Publishing documentation for dream@${VERSION}..."
+          gleam docs publish
+          echo "✓ Successfully published documentation!"
+
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "## 📚 Documentation Published Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** dream" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**View docs:** https://hexdocs.pm/dream/${VERSION}" >> $GITHUB_STEP_SUMMARY
