@@ -54,6 +54,8 @@ jobs:
     name: Publish Core Dream Package
     needs: detect-changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow creating and pushing git tags
     outputs:
       published: ${{ steps.version_check.outputs.should_publish }}
     steps:
