@@ -4,12 +4,12 @@ import dream/http/cookie.{secure_cookie, simple_cookie}
 import dream/http/header.{Header}
 import dream/http/response.{Response, Text}
 import dream/servers/mist/response as mist_response
-import dream_test/assertions/should.{
-  be_ok, be_true, contain_string, equal, or_fail_with, should,
-}
+import dream_test/assertions/should.{contain_string, equal, or_fail_with, should}
 import dream_test/unit.{type UnitTest, describe, it}
 import gleam/option
-import test_helpers.{get_header_value, has_header, has_header_containing}
+import matchers/extract_mist_header_value.{extract_mist_header_value}
+import matchers/have_mist_header.{have_mist_header}
+import matchers/have_mist_header_containing.{have_mist_header_containing}
 
 // ============================================================================
 // Tests
@@ -48,13 +48,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      has_header(
-        mist_response.convert(dream_response),
-        "x-custom-header",
-        "custom-value",
-      )
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header("x-custom-header", "custom-value")
       |> or_fail_with("Should have custom header")
     }),
     it("includes content-type header", fn() {
@@ -67,13 +63,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.Some("text/plain; charset=utf-8"),
         )
 
-      has_header(
-        mist_response.convert(dream_response),
-        "content-type",
-        "text/plain; charset=utf-8",
-      )
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header("content-type", "text/plain; charset=utf-8")
       |> or_fail_with("Should have content-type header")
     }),
     it("converts simple cookie to Set-Cookie header", fn() {
@@ -87,13 +79,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      has_header_containing(
-        mist_response.convert(dream_response),
-        "set-cookie",
-        "session=abc123",
-      )
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header_containing("set-cookie", "session=abc123")
       |> or_fail_with("Should have session cookie")
     }),
     it("preserves other headers when cookie present", fn() {
@@ -107,9 +95,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      has_header(mist_response.convert(dream_response), "x-test", "value")
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header("x-test", "value")
       |> or_fail_with("Should preserve X-Test header")
     }),
     it("preserves multiple headers", fn() {
@@ -126,11 +114,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.Some("application/json"),
         )
 
-      let mist_result = mist_response.convert(dream_response)
-
-      has_header(mist_result, "x-request-id", "req-123")
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header("x-request-id", "req-123")
       |> or_fail_with("Should have X-Request-ID header")
     }),
     it("preserves cache-control header", fn() {
@@ -143,13 +129,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      has_header(
-        mist_response.convert(dream_response),
-        "cache-control",
-        "no-cache",
-      )
+      mist_response.convert(dream_response)
       |> should()
-      |> be_true()
+      |> have_mist_header("cache-control", "no-cache")
       |> or_fail_with("Should have Cache-Control header")
     }),
     it("includes Secure attribute for secure cookie", fn() {
@@ -163,9 +145,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      get_header_value(mist_response.convert(dream_response), "set-cookie")
+      mist_response.convert(dream_response)
       |> should()
-      |> be_ok()
+      |> extract_mist_header_value("set-cookie")
       |> contain_string("Secure")
       |> or_fail_with("Should have Secure attribute")
     }),
@@ -180,9 +162,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      get_header_value(mist_response.convert(dream_response), "set-cookie")
+      mist_response.convert(dream_response)
       |> should()
-      |> be_ok()
+      |> extract_mist_header_value("set-cookie")
       |> contain_string("HttpOnly")
       |> or_fail_with("Should have HttpOnly attribute")
     }),
@@ -197,9 +179,9 @@ fn convert_tests() -> UnitTest {
           content_type: option.None,
         )
 
-      get_header_value(mist_response.convert(dream_response), "set-cookie")
+      mist_response.convert(dream_response)
       |> should()
-      |> be_ok()
+      |> extract_mist_header_value("set-cookie")
       |> contain_string("SameSite=Strict")
       |> or_fail_with("Should have SameSite=Strict attribute")
     }),

@@ -4,42 +4,15 @@ import dream/http/params.{
   field_optional, require_field, require_field_int, require_form, require_int,
   require_string,
 }
-import dream/http/request.{type Request, Get, Http, Http1, Request}
+import dream/http/request.{Get}
 import dream_test/assertions/should.{
   be_none, be_ok, be_some, contain_string, equal, have_length, or_fail_with,
   should,
 }
 import dream_test/unit.{type UnitTest, describe, it}
-import gleam/option
+import fixtures/request as test_request
 import matchers/extract_error_message.{extract_error_message}
 import matchers/extract_field.{extract_field}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-fn create_params_request(
-  params: List(#(String, String)),
-  body: String,
-) -> Request {
-  Request(
-    method: Get,
-    protocol: Http,
-    version: Http1,
-    path: "/test",
-    query: "",
-    params: params,
-    host: option.None,
-    port: option.None,
-    remote_address: option.None,
-    body: body,
-    stream: option.None,
-    headers: [],
-    cookies: [],
-    content_type: option.None,
-    content_length: option.None,
-  )
-}
 
 // ============================================================================
 // Tests
@@ -59,7 +32,8 @@ pub fn tests() -> UnitTest {
 fn require_int_tests() -> UnitTest {
   describe("require_int", [
     it("returns Ok with valid integer", fn() {
-      let request = create_params_request([#("id", "123")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [#("id", "123")])
 
       require_int(request, "id")
       |> should()
@@ -68,7 +42,7 @@ fn require_int_tests() -> UnitTest {
       |> or_fail_with("Should return 123")
     }),
     it("returns error for missing parameter", fn() {
-      let request = create_params_request([], "")
+      let request = test_request.create_request(Get, "/test")
 
       require_int(request, "id")
       |> should()
@@ -77,7 +51,8 @@ fn require_int_tests() -> UnitTest {
       |> or_fail_with("Should mention 'Missing'")
     }),
     it("returns error for non-integer", fn() {
-      let request = create_params_request([#("id", "abc")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [#("id", "abc")])
 
       require_int(request, "id")
       |> should()
@@ -86,7 +61,8 @@ fn require_int_tests() -> UnitTest {
       |> or_fail_with("Should mention 'integer'")
     }),
     it("returns Ok with negative integer", fn() {
-      let request = create_params_request([#("id", "-42")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [#("id", "-42")])
 
       require_int(request, "id")
       |> should()
@@ -95,7 +71,8 @@ fn require_int_tests() -> UnitTest {
       |> or_fail_with("Should return -42")
     }),
     it("returns Ok with zero", fn() {
-      let request = create_params_request([#("id", "0")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [#("id", "0")])
 
       require_int(request, "id")
       |> should()
@@ -104,7 +81,10 @@ fn require_int_tests() -> UnitTest {
       |> or_fail_with("Should return 0")
     }),
     it("returns Ok with large integer", fn() {
-      let request = create_params_request([#("id", "999999")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [
+          #("id", "999999"),
+        ])
 
       require_int(request, "id")
       |> should()
@@ -118,7 +98,10 @@ fn require_int_tests() -> UnitTest {
 fn require_string_tests() -> UnitTest {
   describe("require_string", [
     it("returns Ok with valid parameter", fn() {
-      let request = create_params_request([#("name", "john")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [
+          #("name", "john"),
+        ])
 
       require_string(request, "name")
       |> should()
@@ -127,7 +110,7 @@ fn require_string_tests() -> UnitTest {
       |> or_fail_with("Should return 'john'")
     }),
     it("returns error for missing parameter", fn() {
-      let request = create_params_request([], "")
+      let request = test_request.create_request(Get, "/test")
 
       require_string(request, "name")
       |> should()
@@ -136,7 +119,8 @@ fn require_string_tests() -> UnitTest {
       |> or_fail_with("Should mention 'Missing'")
     }),
     it("returns Ok with empty string", fn() {
-      let request = create_params_request([#("name", "")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [#("name", "")])
 
       require_string(request, "name")
       |> should()
@@ -145,7 +129,10 @@ fn require_string_tests() -> UnitTest {
       |> or_fail_with("Should return empty string")
     }),
     it("returns Ok with special characters", fn() {
-      let request = create_params_request([#("name", "user@example")], "")
+      let request =
+        test_request.create_request_with_params(Get, "/test", [
+          #("name", "user@example"),
+        ])
 
       require_string(request, "name")
       |> should()
@@ -159,7 +146,12 @@ fn require_string_tests() -> UnitTest {
 fn require_form_tests() -> UnitTest {
   describe("require_form", [
     it("parses valid form body", fn() {
-      let request = create_params_request([], "title=Hello&description=World")
+      let request =
+        test_request.create_request_with_body(
+          Get,
+          "/test",
+          "title=Hello&description=World",
+        )
 
       require_form(request)
       |> should()
@@ -168,7 +160,12 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should parse 2 fields")
     }),
     it("extracts title field correctly", fn() {
-      let request = create_params_request([], "title=Hello&description=World")
+      let request =
+        test_request.create_request_with_body(
+          Get,
+          "/test",
+          "title=Hello&description=World",
+        )
 
       require_form(request)
       |> should()
@@ -178,7 +175,12 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("title should be 'Hello'")
     }),
     it("extracts description field correctly", fn() {
-      let request = create_params_request([], "title=Hello&description=World")
+      let request =
+        test_request.create_request_with_body(
+          Get,
+          "/test",
+          "title=Hello&description=World",
+        )
 
       require_form(request)
       |> should()
@@ -188,7 +190,7 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("description should be 'World'")
     }),
     it("returns error for empty body", fn() {
-      let request = create_params_request([], "")
+      let request = test_request.create_request_with_body(Get, "/test", "")
 
       require_form(request)
       |> should()
@@ -197,7 +199,12 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should mention 'empty'")
     }),
     it("decodes URL-encoded space", fn() {
-      let request = create_params_request([], "name=hello%20world")
+      let request =
+        test_request.create_request_with_body(
+          Get,
+          "/test",
+          "name=hello%20world",
+        )
 
       require_form(request)
       |> should()
@@ -207,7 +214,12 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should decode %20 as space")
     }),
     it("decodes URL-encoded email", fn() {
-      let request = create_params_request([], "email=user%40example.com")
+      let request =
+        test_request.create_request_with_body(
+          Get,
+          "/test",
+          "email=user%40example.com",
+        )
 
       require_form(request)
       |> should()
@@ -217,7 +229,8 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should decode %40 as @")
     }),
     it("decodes plus sign as space", fn() {
-      let request = create_params_request([], "query=search+term")
+      let request =
+        test_request.create_request_with_body(Get, "/test", "query=search+term")
 
       require_form(request)
       |> should()
@@ -227,7 +240,8 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should decode + as space")
     }),
     it("handles single field", fn() {
-      let request = create_params_request([], "title=Hello")
+      let request =
+        test_request.create_request_with_body(Get, "/test", "title=Hello")
 
       require_form(request)
       |> should()
@@ -236,7 +250,8 @@ fn require_form_tests() -> UnitTest {
       |> or_fail_with("Should parse 1 field")
     }),
     it("handles field without value", fn() {
-      let request = create_params_request([], "flag&other=value")
+      let request =
+        test_request.create_request_with_body(Get, "/test", "flag&other=value")
 
       require_form(request)
       |> should()

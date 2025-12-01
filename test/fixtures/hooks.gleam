@@ -53,8 +53,9 @@ fn is_server_responding() -> Bool {
     |> client.send()
 
   case result {
-    Ok(_) -> True
-    Error(_) -> False
+    Ok(_response) -> True
+    // Connection refused or timeout expected during startup polling
+    Error(_connection_error) -> False
   }
 }
 
@@ -80,12 +81,6 @@ fn server_start_failure() -> AssertionResult {
 pub fn stop_server() -> AssertionResult {
   AssertionOk
 }
-
 // ============================================================================
 // General Hooks
 // ============================================================================
-
-/// A no-op hook for when you need a placeholder.
-pub fn noop() -> AssertionResult {
-  AssertionOk
-}

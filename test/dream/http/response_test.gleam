@@ -1,31 +1,13 @@
 //// Tests for dream/http/response module.
 
-import dream/http/header.{Header}
 import dream/http/response.{
-  Text, empty_response, html_response, json_response, redirect_response,
-  text_response,
+  empty_response, html_response, json_response, redirect_response, text_response,
 }
 import dream/http/status
 import dream_test/assertions/should.{be_some, equal, or_fail_with, should}
 import dream_test/unit.{type UnitTest, describe, it}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-fn extract_body_text(response: response.Response) -> String {
-  case response.body {
-    Text(text) -> text
-    _ -> ""
-  }
-}
-
-fn get_first_header_value(response: response.Response) -> String {
-  case response.headers {
-    [Header(_, value), ..] -> value
-    _ -> ""
-  }
-}
+import matchers/extract_body_text.{extract_body_text}
+import matchers/extract_first_header_value.{extract_first_header_value}
 
 // ============================================================================
 // Tests
@@ -54,8 +36,9 @@ pub fn tests() -> UnitTest {
       it("sets body text", fn() {
         let body = "{\"message\": \"Hello\"}"
 
-        extract_body_text(json_response(status.ok, body))
+        json_response(status.ok, body)
         |> should()
+        |> extract_body_text()
         |> equal(body)
         |> or_fail_with("Body should match input")
       }),
@@ -98,8 +81,9 @@ pub fn tests() -> UnitTest {
         |> or_fail_with("Status should be 302")
       }),
       it("sets Location header", fn() {
-        get_first_header_value(redirect_response(status.found, "/users/123"))
+        redirect_response(status.found, "/users/123").headers
         |> should()
+        |> extract_first_header_value()
         |> equal("/users/123")
         |> or_fail_with("Location header should be set")
       }),
@@ -112,8 +96,9 @@ pub fn tests() -> UnitTest {
         |> or_fail_with("Status should be 204")
       }),
       it("has empty body", fn() {
-        extract_body_text(empty_response(status.no_content))
+        empty_response(status.no_content)
         |> should()
+        |> extract_body_text()
         |> equal("")
         |> or_fail_with("Body should be empty")
       }),

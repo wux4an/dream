@@ -23,19 +23,18 @@ pub fn extract_cookie_name(
 ) -> MatchResult(String) {
   case result {
     MatchFailed(failure) -> MatchFailed(failure)
-    MatchOk(cookies) -> {
-      case cookies {
-        [first, ..] -> MatchOk(cookie_name(first))
-        [] ->
-          MatchFailed(AssertionFailure(
-            operator: "extract_cookie_name",
-            message: "Expected at least one cookie",
-            payload: Some(CustomMatcherFailure(
-              actual: "[]",
-              description: "Cookie list is empty",
-            )),
-          ))
-      }
-    }
+    MatchOk([first, ..]) -> MatchOk(cookie_name(first))
+    MatchOk([]) -> empty_cookie_list_failure()
   }
+}
+
+fn empty_cookie_list_failure() -> MatchResult(String) {
+  MatchFailed(AssertionFailure(
+    operator: "extract_cookie_name",
+    message: "Expected at least one cookie",
+    payload: Some(CustomMatcherFailure(
+      actual: "[]",
+      description: "Cookie list is empty",
+    )),
+  ))
 }

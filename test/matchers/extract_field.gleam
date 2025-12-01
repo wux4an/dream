@@ -1,4 +1,4 @@
-//// Custom matcher to extract a field from a form.
+//// Custom matcher to extract a field from a list of form fields.
 
 import dream_test/types.{
   type MatchResult, AssertionFailure, CustomMatcherFailure, MatchFailed, MatchOk,
@@ -6,7 +6,7 @@ import dream_test/types.{
 import gleam/list
 import gleam/option.{Some}
 
-/// Extract a field value from a form (List of key-value tuples) for further assertions.
+/// Extract the value of a specific field from a form field list.
 ///
 /// ## Example
 ///
@@ -20,35 +20,45 @@ import gleam/option.{Some}
 /// ```
 ///
 pub fn extract_field(
-  key: String,
-) -> fn(MatchResult(List(#(String, String)))) -> MatchResult(String) {
-  fn(result: MatchResult(List(#(String, String)))) {
-    case result {
-      MatchFailed(failure) -> MatchFailed(failure)
-      MatchOk(form) -> {
-        case list.key_find(form, key) {
-          Ok(value) -> MatchOk(value)
-          Error(_) ->
-            MatchFailed(AssertionFailure(
-              operator: "extract_field",
-              message: "Expected to find field '" <> key <> "'",
-              payload: Some(CustomMatcherFailure(
-                actual: format_form(form),
-                description: "Field not found",
-              )),
-            ))
-        }
-      }
-    }
+  result: MatchResult(List(#(String, String))),
+  name: String,
+) -> MatchResult(String) {
+  case result {
+    MatchFailed(failure) -> MatchFailed(failure)
+    MatchOk(fields) -> find_field(fields, name)
   }
 }
 
-fn format_form(form: List(#(String, String))) -> String {
-  form
-  |> list.map(fn(pair) {
-    let #(key, value) = pair
-    key <> "=" <> value
-  })
-  |> list.intersperse(", ")
-  |> list.fold("", fn(accumulator, item) { accumulator <> item })
+fn find_field(
+  fields: List(#(String, String)),
+  name: String,
+) -> MatchResult(String) {
+  case list.find(fields, fn(field) { field.0 == name }) {
+    Ok(#(_field_name, value)) -> MatchOk(value)
+    Error(Nil) -> field_not_found_failure(name, fields)
+  }
+}
+
+fn field_not_found_failure(
+  name: String,
+  fields: List(#(String, String)),
+) -> MatchResult(String) {
+  let available =
+    fields
+    |> list.map(fn(field) { field.0 })
+    |> list.fold("", fn(acc, field_name) {
+      case acc {
+        "" -> field_name
+        _ -> acc <> ", " <> field_name
+      }
+    })
+
+  MatchFailed(AssertionFailure(
+    operator: "extract_field",
+    message: "Field '" <> name <> "' not found",
+    payload: Some(CustomMatcherFailure(
+      actual: "Available fields: " <> available,
+      description: "Field not found in form data",
+    )),
+  ))
 }

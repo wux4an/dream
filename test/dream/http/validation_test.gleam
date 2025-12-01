@@ -1,9 +1,16 @@
 //// Tests for dream/http/validation module.
 
 import dream/http/validation
-import dream_test/assertions/should.{equal, not_equal, or_fail_with, should}
+import dream_test/assertions/should.{
+  contain_string, equal, not_equal, or_fail_with, should,
+}
 import dream_test/unit.{type UnitTest, describe, it}
 import gleam/dynamic/decode
+import matchers/extract_user_name.{extract_user_name}
+import matchers/extract_validation_error_field.{extract_validation_error_field}
+import matchers/extract_validation_error_message.{
+  extract_validation_error_message,
+}
 
 // ============================================================================
 // Test Types
@@ -20,46 +27,6 @@ fn user_decoder() -> decode.Decoder(TestUser) {
 }
 
 // ============================================================================
-// Helper Functions
-// ============================================================================
-
-fn get_user_name(result: Result(TestUser, validation.ValidationError)) -> String {
-  case result {
-    Ok(user) -> user.name
-    Error(_) -> ""
-  }
-}
-
-fn get_user_email(
-  result: Result(TestUser, validation.ValidationError),
-) -> String {
-  case result {
-    Ok(user) -> user.email
-    Error(_) -> ""
-  }
-}
-
-fn get_error_message(result: Result(a, validation.ValidationError)) -> String {
-  case result {
-    Ok(_) -> ""
-    Error(validation.ValidationError(message, _, _, _)) -> message
-  }
-}
-
-fn get_error_field(result: Result(a, validation.ValidationError)) -> String {
-  case result {
-    Ok(_) -> ""
-    Error(validation.ValidationError(_, field, _, _)) ->
-      case field {
-        option.Some(field_name) -> field_name
-        option.None -> ""
-      }
-  }
-}
-
-import gleam/option
-
-// ============================================================================
 // Tests
 // ============================================================================
 
@@ -70,8 +37,8 @@ pub fn tests() -> UnitTest {
         let body = "{\"name\": \"John\", \"email\": \"john@example.com\"}"
 
         validation.validate_json(body, user_decoder())
-        |> get_user_name()
         |> should()
+        |> extract_user_name(fn(user: TestUser) { user.name })
         |> equal("John")
         |> or_fail_with("Name should be 'John'")
       }),
@@ -79,8 +46,8 @@ pub fn tests() -> UnitTest {
         let body = "{\"name\": \"John\", \"email\": \"john@example.com\"}"
 
         validation.validate_json(body, user_decoder())
-        |> get_user_email()
         |> should()
+        |> extract_user_name(fn(user: TestUser) { user.email })
         |> equal("john@example.com")
         |> or_fail_with("Email should be 'john@example.com'")
       }),
@@ -88,8 +55,8 @@ pub fn tests() -> UnitTest {
         let body = "{invalid json"
 
         validation.validate_json(body, user_decoder())
-        |> get_error_message()
         |> should()
+        |> extract_validation_error_message()
         |> not_equal("")
         |> or_fail_with("Should have error message")
       }),
@@ -97,8 +64,8 @@ pub fn tests() -> UnitTest {
         let body = "{\"name\": 123, \"email\": \"john@example.com\"}"
 
         validation.validate_json(body, user_decoder())
-        |> get_error_field()
         |> should()
+        |> extract_validation_error_field()
         |> equal("name")
         |> or_fail_with("Field should be 'name'")
       }),
@@ -106,10 +73,19 @@ pub fn tests() -> UnitTest {
         let body = "{\"name\": \"John\"}"
 
         validation.validate_json(body, user_decoder())
-        |> get_error_field()
         |> should()
+        |> extract_validation_error_field()
         |> equal("email")
         |> or_fail_with("Field should be 'email'")
+      }),
+      it("returns descriptive error message for wrong type", fn() {
+        let body = "{\"name\": 123, \"email\": \"john@example.com\"}"
+
+        validation.validate_json(body, user_decoder())
+        |> should()
+        |> extract_validation_error_message()
+        |> contain_string("name")
+        |> or_fail_with("Error message should mention field name")
       }),
     ]),
   ])

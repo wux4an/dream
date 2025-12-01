@@ -23,28 +23,30 @@ pub fn extract_error_message(
 ) -> MatchResult(String) {
   case result {
     MatchFailed(failure) -> MatchFailed(failure)
-    MatchOk(inner_result) -> {
-      case inner_result {
-        Ok(_) ->
-          MatchFailed(AssertionFailure(
-            operator: "extract_error_message",
-            message: "Expected an Error but got Ok",
-            payload: Some(CustomMatcherFailure(
-              actual: "Ok(...)",
-              description: "Result was Ok, not Error",
-            )),
-          ))
-        Error(BadRequest(message)) -> MatchOk(message)
-        Error(_) ->
-          MatchFailed(AssertionFailure(
-            operator: "extract_error_message",
-            message: "Expected BadRequest error",
-            payload: Some(CustomMatcherFailure(
-              actual: "Other error type",
-              description: "Error was not BadRequest",
-            )),
-          ))
-      }
-    }
+    MatchOk(Ok(_value)) -> unexpected_ok_failure()
+    MatchOk(Error(BadRequest(message))) -> MatchOk(message)
+    MatchOk(Error(_other_error)) -> wrong_error_type_failure()
   }
+}
+
+fn unexpected_ok_failure() -> MatchResult(String) {
+  MatchFailed(AssertionFailure(
+    operator: "extract_error_message",
+    message: "Expected an Error but got Ok",
+    payload: Some(CustomMatcherFailure(
+      actual: "Ok(...)",
+      description: "Result was Ok, not Error",
+    )),
+  ))
+}
+
+fn wrong_error_type_failure() -> MatchResult(String) {
+  MatchFailed(AssertionFailure(
+    operator: "extract_error_message",
+    message: "Expected BadRequest error",
+    payload: Some(CustomMatcherFailure(
+      actual: "Other error type",
+      description: "Error was not BadRequest",
+    )),
+  ))
 }
