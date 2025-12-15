@@ -83,8 +83,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Reference",
+      link: {
+        type: "doc",
+        id: "reference/index",
+      },
       items: [
-        "reference/index",
         "reference/architecture",
         "reference/design-principles",
         "reference/dream-vs-mist",
