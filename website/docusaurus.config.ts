@@ -73,6 +73,7 @@ const config: Config = {
     image: "img/logo.png",
     colorMode: {
       disableSwitch: true,
+      defaultMode: "dark",
     },
     navbar: {
       title: "Dream",
