@@ -20,8 +20,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Learn",
+      link: {
+        type: "doc",
+        id: "learn/index",
+      },
       items: [
-        "learn/index",
         "learn/hello-world",
         "learn/building-api",
         "learn/adding-auth",
@@ -31,8 +34,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Guides",
+      link: {
+        type: "doc",
+        id: "guides/index",
+      },
       items: [
-        "guides/index",
         "guides/authentication",
         "guides/controllers-and-models",
         "guides/deployment",
@@ -50,8 +56,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Concepts",
+      link: {
+        type: "doc",
+        id: "concepts",
+      },
       items: [
-        "concepts",
         "concepts/how-it-works",
         "concepts/patterns",
         "concepts/project-structure",
@@ -60,9 +69,12 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Contributing",
+      link: {
+        type: "doc",
+        id: "contributing/index",
+      },
       items: [
-        "contributing/index",
-        "contributing/contributing",
+        "contributing/contributing-guide",
         "contributing/publishing",
         "contributing/testing",
         "contributing/tone-guide",

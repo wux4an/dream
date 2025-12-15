@@ -404,7 +404,7 @@ For server-side rendering with full type safety, Dream recommends a layered temp
 3. **Pages** (`templates/pages/*.matcha` or `.gleam`): Compose components into full pages
 4. **Layouts** (`templates/layouts/*.gleam`): Wrap pages with consistent structure (nav, footer, scripts)
 
-This pattern eliminates markup duplication, keeps styling consistent, and provides full type safety through Gleam. See [Template Composition](../guides/templates.md) for a complete guide.
+This pattern eliminates markup duplication, keeps styling consistent, and provides full type safety through Gleam. See [Template Composition](guides/templates.md) for a complete guide.
 
 **See:** [examples/tasks/src/templates/](../examples/tasks/src/templates/) for a working example
 
