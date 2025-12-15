@@ -37,12 +37,21 @@
 }
 
 .link {
-  background-color: #584355;
-  border-color: #584355;
-  color: white;
+  background-color: #ffaff3;
+  border-color: #ffaff3;
+  color: #282a36;
   border-radius: 0.7rem;
   margin-top: 2rem;
   align-items: left;
+
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.link:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
 }
 
 .heroLogo {

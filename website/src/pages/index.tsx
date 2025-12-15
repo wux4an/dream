@@ -6,6 +6,7 @@ import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 import Example from "../components/Example";
 import Features from "../components/Features";
+import { Notebook } from "lucide-react";
 
 function HomepageHeader() {
   return (
@@ -29,6 +30,14 @@ function HomepageHeader() {
               )}
               to="/docs"
             >
+              <Notebook
+                size={22}
+                style={{
+                  marginRight: "0.5rem",
+                  position: "relative",
+                  top: "3px",
+                }}
+              />
               Get Started
             </Link>
           </div>
